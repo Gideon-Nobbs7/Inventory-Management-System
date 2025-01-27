@@ -1,0 +1,74 @@
+from django.db import transaction
+import json, pika, os
+from dotenv import load_dotenv
+from .models import InventoryEntry, InventoryTransaction, ProcessMessage
+
+load_dotenv() 
+
+class InventoryConsumer:
+    def __init__(self):
+        self.url = os.getenv("AMQP_KEY")
+        self.params = pika.URLParameters(self.url)
+        self.params.socket_timeout = 2
+        self.connection = pika.BlockingConnection(self.params)
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue="order_events")
+    
+    def consume(self):
+        self.channel.close()
+        self.connection.close()
+        
+        self.channel.basic_consume(
+            queue="order_events",
+            on_message_callback=self.process_order_message,
+            auto_ack=False
+        )
+        self.channel.start_consuming()
+
+    def process_order_message(self, channel, method, property, body):
+        try:
+            message = json.loads(body)
+            print(message)
+
+            order_id = message.get("order_id")
+
+            with transaction.atomic():
+                processed, created = ProcessMessage.objects.get_or_create(
+                    message_id=order_id
+                )
+
+                if created and message["event_type"] == "ORDER_CREATED":
+
+                    items = json.loads(message["items"])
+
+                    for item in items:
+                        try:
+                            inventory_entry = InventoryEntry.objects.get(product_id=item["product_id"])
+                            inventory_entry.total_quantity -= item["quantity"]
+                            inventory_entry.save()
+                        except InventoryEntry.DoesNotExist:
+                            print(f"Inventory not found for product {item["product_id"]}")
+                        
+                        InventoryTransaction.objects.create(
+                            inventory_entry=inventory_entry,
+                            product_id=item["product_id"],
+                            quantity_change=item["quantity"],
+                            transaction_type="SALE"
+                        )
+                channel.basic_ack(delivery_tag=method.delivery_tag)
+
+            channel.basic_ack(delivery_tag=method.delivery_tag)
+        
+        except Exception as e:
+        # Explicitly handle potential channel issues
+            print(f"Error hanndling consume {str(e)}")
+        try:
+            channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        except Exception:
+            # Force channel recovery if needed
+            pass
+                    
+
+
+
+    

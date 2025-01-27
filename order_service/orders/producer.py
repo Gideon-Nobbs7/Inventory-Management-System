@@ -1,4 +1,4 @@
-import pika, pika, os
+import pika, pika, os, json
 from dotenv import load_dotenv
 from . import serializers
 

@@ -15,9 +15,6 @@ class InventoryConsumer:
         self.channel.queue_declare(queue="order_events")
     
     def consume(self):
-        self.channel.close()
-        self.connection.close()
-        
         self.channel.basic_consume(
             queue="order_events",
             on_message_callback=self.process_order_message,
@@ -44,8 +41,11 @@ class InventoryConsumer:
                     for item in items:
                         try:
                             inventory_entry = InventoryEntry.objects.get(product_id=item["product_id"])
+                            if inventory_entry.total_quantity == 0:
+                                raise ValueError("The quantity for this product is finished")
                             inventory_entry.total_quantity -= item["quantity"]
                             inventory_entry.save()
+
                         except InventoryEntry.DoesNotExist:
                             print(f"Inventory not found for product {item["product_id"]}")
                         

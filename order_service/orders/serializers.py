@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Order, OrderItem
-from .services import ProductService
+from .services import ProductService, InventoryService
 from .producer import publish_order
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -14,10 +14,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
             quantity = validated_data.get("quantity")
 
             product_service = ProductService()
+            inventory_service = InventoryService()
 
             product_data = product_service.get_product(product_id)
             if not product_data:
                 raise serializers.ValidationError(f"Product with ID {product_id} not found")
+            
+            inventory_service.check_inventory(product_id, quantity)
             
             unit_price = product_data["price"]
             total = unit_price * quantity

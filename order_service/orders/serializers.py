@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Order, OrderItem
 from .services import ProductService, InventoryService
 from .producer import publish_order
+import json
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,11 +45,15 @@ class OrderSerializer(serializers.ModelSerializer):
         validated_data["user_id"] = user_id
 
         order_items_data = validated_data.pop("order_items")
+        print(order_items_data)
 
         order = Order.objects.create(**validated_data)
 
+        inventory_service = InventoryService()
+
         for item_data in order_items_data:
             item_data["order"] = order
+            inventory_service.check_inventory(item_data["product_id"], item_data["quantity"])
             OrderItemSerializer().create(item_data)
 
         publish_order(order, order_items_data)

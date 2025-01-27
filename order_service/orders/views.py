@@ -10,6 +10,7 @@ from .serializers import OrderSerializer
 from .models import Order
 from .authentication import MicroserviceAuthentication
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class OrderView(APIView):
      authentication_classes = [MicroserviceAuthentication]

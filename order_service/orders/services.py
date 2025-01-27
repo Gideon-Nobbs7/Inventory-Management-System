@@ -16,7 +16,7 @@ class ProductService:
 
 class InventoryService:
     def __init__(self):
-        self.base_url = "http://127.0.0.1:8002/"
+        self.base_url = "http://127.0.0.1:8002/inventory/api/v1"
 
     def check_inventory(self, product_id:int, quantity:int):
         try:
@@ -25,7 +25,7 @@ class InventoryService:
                 raise ValidationError(f"Product {product_id} not found in inventory")
             
             inventory_data = response.json()
-            if inventory_data["quantity"] < quantity:
+            if inventory_data["total_quantity"] < quantity:
                 raise ValidationError(
                     f"Insufficient quantity available for product {product_id}"
                 )

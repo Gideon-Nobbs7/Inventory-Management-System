@@ -13,7 +13,7 @@ def publish_order(order, order_items):
         try:
             connection = pika.BlockingConnection(params)
             channel = connection.channel()
-            channel.queue_declare(queue="order_events")
+            channel.queue_declare(queue="new_orders")
 
             serialized_items = serializers.OrderItemSerializer(order_items, many=True).data
 

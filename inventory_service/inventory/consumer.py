@@ -12,7 +12,7 @@ class InventoryConsumer:
         self.params.socket_timeout = 2
         self.connection = pika.BlockingConnection(self.params)
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue="order_events")
+        self.channel.queue_declare(queue="new_orders")
     
     def consume(self):
         self.channel.basic_consume(
@@ -45,18 +45,16 @@ class InventoryConsumer:
                                 raise ValueError("The quantity for this product is finished")
                             inventory_entry.total_quantity -= item["quantity"]
                             inventory_entry.save()
-
+                        
+                            InventoryTransaction.objects.create(
+                                inventory_entry=inventory_entry,
+                                product_id=item["product_id"],
+                                quantity_change=item["quantity"],
+                                transaction_type="SALE"
+                            )
                         except InventoryEntry.DoesNotExist:
                             print(f"Inventory not found for product {item["product_id"]}")
-                        
-                        InventoryTransaction.objects.create(
-                            inventory_entry=inventory_entry,
-                            product_id=item["product_id"],
-                            quantity_change=item["quantity"],
-                            transaction_type="SALE"
-                        )
-                channel.basic_ack(delivery_tag=method.delivery_tag)
-
+                            raise
             channel.basic_ack(delivery_tag=method.delivery_tag)
         
         except Exception as e:
@@ -64,9 +62,8 @@ class InventoryConsumer:
             print(f"Error hanndling consume {str(e)}")
         try:
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-        except Exception:
-            # Force channel recovery if needed
-            pass
+        except Exception as nack_error:
+            print(f"Error sending nack: {str(nack_error)}")
                     
 
 

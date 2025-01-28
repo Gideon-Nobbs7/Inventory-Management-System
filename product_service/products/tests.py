@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from .models import Product
+from .serializers import ProductSerializer
 
 
 class ProductTests(APITestCase):
@@ -61,3 +62,30 @@ class ProductTests(APITestCase):
         response = self.client.delete(self.product_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Product.objects.count(), 0)
+
+
+
+class TestProductSerializer(APITestCase):
+    def test_product_serializer_valid_data(self):
+        data = {
+            'name': 'New Product',
+            'description': 'New Description',
+            'price': 187,
+            'quantity': 1500
+        }
+        serializer = ProductSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        product = serializer.save()
+        self.assertEqual(product.name, "New Product")
+
+    def test_product_serializer_invalid_data(self):
+        data = {
+            'name': '',
+            'description': 'New Description',
+            'price': -198,
+            'quantity': 1500
+        }
+        serializer = ProductSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('name', serializer.errors)
+        self.assertIn('price', serializer.errors)

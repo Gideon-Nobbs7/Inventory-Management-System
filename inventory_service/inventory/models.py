@@ -29,6 +29,7 @@ class InventoryEntry(models.Model):
     def available_quantity(self):
         return self.total_quantity - self.reserved_quantity
     
+    @property
     def is_low_stock(self):
         return self.available_quantity <= self.min_stock_level
     

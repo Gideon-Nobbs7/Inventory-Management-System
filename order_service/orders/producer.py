@@ -1,4 +1,4 @@
-import pika, pika, os, json
+import pika, os, json
 from dotenv import load_dotenv
 from . import serializers
 
@@ -13,7 +13,7 @@ def publish_order(order, order_items):
         try:
             connection = pika.BlockingConnection(params)
             channel = connection.channel()
-            channel.queue_declare(queue="new_orders")
+            channel.queue_declare(queue="main_order", durable=True)
 
             serialized_items = serializers.OrderItemSerializer(order_items, many=True).data
 
@@ -25,7 +25,7 @@ def publish_order(order, order_items):
 
             channel.basic_publish(
                 exchange='',
-                routing_key="order_events",
+                routing_key="main_order",
                 body = json.dumps(message)
             )
             print("Order successfully published")
@@ -33,4 +33,4 @@ def publish_order(order, order_items):
             connection.close()
 
         except Exception as e:
-            print(f"Error printing message: {str(e)}")
+            print(f"Error Publishing Message: {str(e)}")

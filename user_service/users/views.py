@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import User, UserSerializer
 import json
 # Create your views here.
@@ -28,22 +29,19 @@ class TokenValidationView(APIView):
         token = request.data.get("token")
         try:
             decoded_token = AccessToken(token)
+            print(decoded_token)
             user_id = decoded_token.payload.get("user_id")
             user = User.objects.get(id=user_id)
-            print(json.dumps(user)) 
-
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=200) 
+        
+        except TokenError:
             return Response(
-                {"valid": True,
-                "user": {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                    'is_active': user.is_active
-                }}
-            )  
+                {"error": "Invalid token"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         except Exception as e:
-            return Response({
-                "valid": False,
-                "detail": str(e)},
-                status=401
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
             )

@@ -22,6 +22,7 @@ class ProductTests(APITestCase):
             price=100,
             quantity=1200
         )
+
         self.product_url = reverse("product-detail", args=[self.product.id])
         self.products_url = reverse("product-create")
 
@@ -62,7 +63,6 @@ class ProductTests(APITestCase):
         response = self.client.delete(self.product_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Product.objects.count(), 0)
-
 
 
 class TestProductSerializer(APITestCase):

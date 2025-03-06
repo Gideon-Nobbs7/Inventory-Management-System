@@ -12,12 +12,16 @@ COPY ./order_service/requirements.txt /app/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r /app/requirements.txt
 
-USER nduser
+COPY order_service /app
 
-COPY --chown=nduser order_service /app
+RUN chmod -R 755 /app
+
+RUN chown -R nduser:nduser /app
+
+USER nduser
 
 EXPOSE 8002
 
-CMD [ "python", "manage.py", "runserver", "8002" ]
+CMD [ "python", "manage.py", "runserver", "0.0.0.0:8002" ]
 
 

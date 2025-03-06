@@ -2,7 +2,7 @@ import requests
 from rest_framework.exceptions import APIException, ValidationError
 
 class ProductService:
-    BASE_URL = "localhost:8002/products/api/v1/"
+    BASE_URL = "http://0.0.0.0:8001/products/api/v1/"
 
     def get_product(product_id):
         try:
@@ -16,7 +16,7 @@ class ProductService:
 
 class InventoryService:
     def __init__(self):
-        self.base_url = "http://127.0.0.1:8002/inventory/api/v1"
+        self.base_url = "http://0.0.0.0:8003/inventory/api/v1"
 
     def check_inventory(self, product_id:int, quantity:int):
         try:

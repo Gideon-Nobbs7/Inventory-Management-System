@@ -12,12 +12,16 @@ COPY ./notif_service/requirements.txt /app/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r /app/requirements.txt
 
+COPY notif_service /app
+
+RUN chmod -R 755 /app
+
+RUN chown -R nduser:nduser /app
+
 USER nduser
 
-COPY --chown=nduser notif_service /app
+EXPOSE 8004
 
-EXPOSE 8005
-
-CMD [ "python", "manage.py", "runserver", "8004" ]
+CMD [ "python", "manage.py", "runserver", "0.0.0.0:8004" ]
 
 

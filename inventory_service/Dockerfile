@@ -12,18 +12,22 @@ COPY ./inventory_service/requirements.txt /app/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r /app/requirements.txt
 
-USER nduser
+COPY inventory_service /app
 
-COPY --chown=nduser inventory_service /app
-
-EXPOSE 8004
-
-COPY --chown=nduser ./inventory_service/entrypoint.sh /app/entrypoint.sh
+COPY ./inventory_service/entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
+RUN chmod -R 755 /app
+
+RUN chown -R nduser:nduser /app
+
 ENTRYPOINT [ "/app/entrypoint.sh" ]
 
-CMD [ "python", "manage.py", "runserver", "8003" ]
+USER nduser
+
+EXPOSE 8003
+
+CMD [ "python", "manage.py", "runserver", "0.0.0.0:8003" ]
 
 

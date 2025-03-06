@@ -30,8 +30,10 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'http://localhost:8000',
     'http://localhost:8001',
+    'http://localhost:8002',
     '127.0.0.1',  
     'localhost',
+    "0.0.0.0"
 ]
 
 # Application definition

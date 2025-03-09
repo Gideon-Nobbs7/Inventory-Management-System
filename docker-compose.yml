@@ -1,66 +1,83 @@
 services:
-  user-services:
+  user-service:
     image: user-client
     build:
-      dockerfile: /user_service/Dockerfile 
+      dockerfile: ./user_service/Dockerfile 
+      target: dev
     networks:
       - ims-network
     ports:
       - 8000:8000
     volumes:
       - ./user_service/db.sqlite3:/app/db.sqlite3:rw
+      - type: bind 
+        source: ./user_service
+        target: /app/
     environment:
       - AMQP_KEY=${AMQP_KEY}
   
-  product-services:
+  product-service:
     image: product-client
     build:
-      dockerfile: /product_service/Dockerfile 
+      dockerfile: ./product_service/Dockerfile 
     networks:
       - ims-network
     ports:
       - 8001:8001
     volumes:
       - ./product_service/db.sqlite3:/app/db.sqlite3:rw
+      - type: bind
+        source: ./product_service
+        target: /app/
     environment:
       - AMQP_KEY=${AMQP_KEY}
   
-  order-services:
+  order-service:
     image: order-client
     build:
-      dockerfile: /order_service/Dockerfile 
+      dockerfile: ./order_service/Dockerfile 
     networks:
       - ims-network
     ports:
       - 8002:8002
     volumes:
       - ./order_service/db.sqlite3:/app/db.sqlite3:rw
+      - type: bind
+        source: ./order_service
+        target: /app/
     environment:
       - AMQP_KEY=${AMQP_KEY}
 
   inventory-service:
     image: inventory-client
     build:
-      dockerfile: /inventory_service/Dockerfile 
+      dockerfile: ./inventory_service/Dockerfile 
+      target: dev
     networks:
       - ims-network
     ports:
       - 8003:8003
     volumes:
       - ./inventory_service/db.sqlite3:/app/db.sqlite3:rw
+      - type: bind
+        source: ./inventory_service
+        target: /app/
     environment:
       - AMQP_KEY=${AMQP_KEY}
   
-  notification-services:
+  notification-service:
     image: notif-client
     build:
-      dockerfile: /notif_service/Dockerfile 
+      dockerfile: ./notif_service/Dockerfile 
     networks:
       - ims-network
     ports:
       - 8004:8004
     volumes:
       - ./notif_service/db.sqlite3:/app/db.sqlite3:rw
+      - type: bind
+        source: ./notif_service
+        target: /app/
     environment:
       - AMQP_KEY=${AMQP_KEY}
   
